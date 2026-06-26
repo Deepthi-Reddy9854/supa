@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { AlertCircle, CheckCircle2, LogIn, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
-  const { login, authError } = useAuth();
+  const { login, loginWithGoogle, authError } = useAuth();
   const navigate = useNavigate();
 
   // Form inputs
@@ -101,6 +101,35 @@ const Login = () => {
     }
   };
 
+  const handleGoogleAuthClick = async () => {
+    // If Firebase is configured, trigger the real Google Sign-In popup
+    if (import.meta.env.VITE_FIREBASE_API_KEY) {
+      setLoading(true);
+      setError('');
+      try {
+        const loggedUser = await loginWithGoogle();
+
+        // Redirect based on role
+        if (loggedUser.role === 'admin') {
+          navigate('/admin');
+        } else if (loggedUser.role === 'delivery') {
+          navigate('/delivery');
+        } else if (loggedUser.role === 'manager') {
+          navigate('/manager');
+        } else {
+          navigate('/');
+        }
+      } catch (err) {
+        setError(err.message || 'Google authentication failed.');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Fallback to simulation modal if Firebase env variables aren't set
+      setShowGoogleModal(true);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center py-12 px-4 bg-white relative overflow-hidden font-sans">
       
@@ -123,7 +152,7 @@ const Login = () => {
         {/* Google Authentication Option */}
         <button
           type="button"
-          onClick={() => setShowGoogleModal(true)}
+          onClick={handleGoogleAuthClick}
           className="w-full flex items-center justify-center gap-2 py-3 border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold text-xs rounded-xl transition-all"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

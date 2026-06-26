@@ -3,14 +3,32 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import db from '../db.js';
 import { verifyToken } from '../middleware/auth.js';
+import { verifyFirebaseToken } from '../middleware/firebase.js';
 
 const router = express.Router();
 
-// Google login simulation
+// Google login simulation / Firebase Google auth endpoint
 router.post('/google-login', async (req, res) => {
   try {
-    const { email, name, image, password } = req.body;
+    const { idToken, email: bodyEmail, name: bodyName, image: bodyImage, password } = req.body;
     
+    let email = bodyEmail;
+    let name = bodyName;
+    let image = bodyImage;
+
+    if (idToken) {
+      try {
+        const projectId = process.env.FIREBASE_PROJECT_ID || 'automobile-distributor';
+        const decodedToken = await verifyFirebaseToken(idToken, projectId);
+        email = decodedToken.email;
+        name = decodedToken.name;
+        image = decodedToken.picture;
+      } catch (err) {
+        console.error('Firebase token verification failed:', err);
+        return res.status(401).json({ message: 'Invalid Google Sign-In token: ' + err.message });
+      }
+    }
+
     if (!email) {
       return res.status(400).json({ message: 'Email is required.' });
     }

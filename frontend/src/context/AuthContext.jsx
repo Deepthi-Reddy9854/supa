@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 const AuthContext = createContext();
 
@@ -7,6 +9,23 @@ export const API_URL = import.meta.env.VITE_API_URL || (
     ? 'http://localhost:5000/api'
     : '/api'
 );
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
+};
+
+let firebaseAuth = null;
+if (firebaseConfig.apiKey) {
+  try {
+    const app = initializeApp(firebaseConfig);
+    firebaseAuth = getAuth(app);
+  } catch (err) {
+    console.error('Failed to initialize Firebase app:', err);
+  }
+}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -64,6 +83,43 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, name, image, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed.');
+      }
+
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      return data.user;
+    } catch (err) {
+      setAuthError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    if (!firebaseAuth) {
+      throw new Error("Firebase Google Sign-In is not configured. Please verify VITE_FIREBASE_API_KEY and other env variables are set.");
+    }
+    setLoading(true);
+    setAuthError(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(firebaseAuth, provider);
+      const idToken = await result.user.getIdToken();
+
+      const response = await fetch(`${API_URL}/auth/google-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken }),
       });
 
       const data = await response.json();
@@ -163,6 +219,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         authError,
         login: loginWithGoogleSimulated,
+        loginWithGoogle,
         loginWithMobile,
         logout: handleLogout,
         authenticatedFetch,

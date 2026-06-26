@@ -177,6 +177,16 @@
       "blocked": false,
       "image": null,
       "createdAt": "2026-06-26T19:55:47.452Z"
+    },
+    {
+      "id": "user-1782504122007-q721",
+      "name": "Test Vercel User",
+      "email": "test_1782504121805@example.com",
+      "password": "$2a$10$8diB9az3Ac.VVwm/QMdSy.4QR6Qyb4s4QA6EL8/XjndzNk3Pty27a",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T20:02:01.996Z"
     }
   ],
   "products": [
