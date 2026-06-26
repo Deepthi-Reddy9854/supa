@@ -67,6 +67,116 @@
       "blocked": false,
       "image": null,
       "createdAt": "2026-06-26T15:45:23.105Z"
+    },
+    {
+      "id": "user-1782497534010-35ny",
+      "name": "Other User",
+      "email": "other@example.com",
+      "password": "$2a$10$0cdMed19Q.Sl62ZDNp88ku.njK/PlyarGOgUnQ2QIHTyzz3ehw4wS",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T18:12:14.008Z"
+    },
+    {
+      "id": "user-1782497717636-kpk4",
+      "name": "Admin",
+      "email": "admin@example.com",
+      "password": "$2a$10$ob3XHjseWoicDwxuf4F8qeSCOibQvt7x88RxTSGyTksoT.Y7JL3iG",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T18:15:17.632Z"
+    },
+    {
+      "id": "user-1782497798550-if15",
+      "name": "Gmail User",
+      "email": "user@gmail.com",
+      "password": "$2a$10$kvND3MNEiDislBH.9oKbqOBia0L4LGOloKnS5BN8BkwheiXN8sfw2",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T18:16:38.546Z"
+    },
+    {
+      "id": "user-1782497900914-9rcl",
+      "name": "Yashureedy",
+      "email": "yashureedy02@gmail.com",
+      "password": "$2a$10$crWIPQfIuSU6um.whOZmaubUIvr84ELcTtiQmoOTmm/Rmbea9QOm.",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T18:18:20.910Z"
+    },
+    {
+      "id": "user-1782498289947-f7gv",
+      "name": "Test New User",
+      "email": "test-new-email@gmail.com",
+      "password": "$2a$10$OJeRYKwS095YYLo55GvLae8/XfUaBBzYDacwB9puTunpB92SEloGa",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T18:24:49.944Z"
+    },
+    {
+      "id": "user-1782498486088-rl3f",
+      "name": "Test User",
+      "email": "testuser1@example.com",
+      "password": "$2a$10$9Aho3lfGZUKwh/2ck7kSHOjG9efmQ79V.1BUV6e8fZ2y7FK7JcyOC",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T18:28:06.084Z"
+    },
+    {
+      "id": "user-1782498819912-6qt6",
+      "name": "Test Guest",
+      "email": "guest@testmail.com",
+      "password": "$2a$10$akQO.vtPIdjJcPZqECa6DelgZZ/0hxbmsFlg0uj6B1MjPVRciBdvK",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T18:33:39.908Z"
+    },
+    {
+      "id": "user-1782500059054-ny71",
+      "name": "Test User",
+      "email": "test_other_user@gmail.com",
+      "password": null,
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T18:54:19.051Z"
+    },
+    {
+      "id": "user-1782500182228-xphy",
+      "name": "Random User",
+      "email": "new_random_user_12345@gmail.com",
+      "password": null,
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T18:56:22.217Z"
+    },
+    {
+      "id": "user-1782500403899-9dmh",
+      "name": "Test Registration",
+      "email": "testreg@example.com",
+      "password": "$2a$10$Rv9/HNEGyuHLnFcOzRvPTOAB5r.VzNoJII5SfXznVQmeytXatLoma",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T19:00:03.893Z"
+    },
+    {
+      "id": "user-1782503747455-wcgi",
+      "name": "Test Vercel User",
+      "email": "test_1782503747286@example.com",
+      "password": "$2a$10$8E9FAl471Rg4tMbHvWF.luHY8D48YQ63DZeloXOf4wnQ4qxLCfzNK",
+      "role": "customer",
+      "blocked": false,
+      "image": null,
+      "createdAt": "2026-06-26T19:55:47.452Z"
     }
   ],
   "products": [
