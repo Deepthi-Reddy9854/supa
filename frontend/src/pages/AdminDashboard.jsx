@@ -839,7 +839,10 @@ ${footer}
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                loadDashboardDataSilently();
+              }}
               className={`px-4 py-2.5 rounded-t-xl text-sm font-semibold flex items-center gap-2 border-b-2 transition-all duration-200 ${
                 activeTab === tab.id
                   ? 'border-indigo-600 text-indigo-600 bg-indigo-600/5 font-extrabold'
