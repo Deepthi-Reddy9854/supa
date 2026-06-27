@@ -116,8 +116,8 @@ const ProductDetail = () => {
   // Active shop values
   const activeShop = shops.find(s => s.id === selectedShopId);
   const activeStock = product.stock?.[selectedShopId] ?? 0;
-  const itemsPerCarton = product.caseQuantity || 20;
-  const maxAllowedQty = purchaseType === 'carton' ? Math.floor(activeStock / itemsPerCarton) : activeStock;
+  const itemsPerCase = product.caseQuantity || 20;
+  const maxAllowedQty = purchaseType === 'case' || purchaseType === 'carton' ? Math.floor(activeStock / itemsPerCase) : activeStock;
 
   // Add to cart handler
   const handleAddToCart = () => {
@@ -278,9 +278,9 @@ const ProductDetail = () => {
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase">Distributor Cost</p>
               <p className="text-3xl font-black text-indigo-600">
-                ₹{(purchaseType === 'carton' ? product.price * itemsPerCarton : product.price).toLocaleString('en-IN')}
+                ₹{((purchaseType === 'case' || purchaseType === 'carton') ? product.price * itemsPerCase : product.price).toLocaleString('en-IN')}
                 <span className="text-xs font-semibold text-gray-400 ml-1.5 uppercase">
-                  {purchaseType === 'carton' ? 'per Carton' : 'per Unit'}
+                  {(purchaseType === 'case' || purchaseType === 'carton') ? 'per Case' : 'per Unit'}
                 </span>
               </p>
             </div>
@@ -315,17 +315,17 @@ const ProductDetail = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setPurchaseType('carton');
+                    setPurchaseType('case');
                     setQuantity(1);
                   }}
                   className={`flex-1 p-3 rounded-2xl border text-center transition-all ${
-                    purchaseType === 'carton'
+                    purchaseType === 'case' || purchaseType === 'carton'
                       ? 'border-indigo-600 bg-indigo-600/5 font-bold text-indigo-600 dark:text-indigo-400'
                       : 'border-gray-250 dark:border-gray-800 text-gray-500 hover:border-gray-400 dark:hover:border-gray-700'
                   }`}
                 >
-                  <p className="text-sm font-bold">Carton ({itemsPerCarton} Items)</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{itemsPerCarton} Units in box</p>
+                  <p className="text-sm font-bold">Case ({itemsPerCase} Items)</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{itemsPerCase} Units in box</p>
                 </button>
               </div>
             </div>
@@ -342,7 +342,7 @@ const ProductDetail = () => {
                     <button
                       onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
                       disabled={quantity <= 1}
-                      className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-850 text-gray-655 dark:text-gray-300 font-bold focus:outline-none disabled:opacity-50"
+                      className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-850 text-gray-600 dark:text-gray-300 font-bold focus:outline-none disabled:opacity-50"
                     >
                       -
                     </button>
@@ -350,9 +350,9 @@ const ProductDetail = () => {
                       {quantity}
                     </span>
                     <button
-                      onClick={() => setQuantity(prev => Math.min(Math.min(maxAllowedQty, 20), prev + 1))}
-                      disabled={quantity >= 20 || quantity >= maxAllowedQty}
-                      className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-850 text-gray-655 dark:text-gray-300 font-bold focus:outline-none disabled:opacity-50"
+                      onClick={() => setQuantity(prev => Math.min(Math.min(maxAllowedQty, 200), prev + 1))}
+                      disabled={quantity >= 200 || quantity >= maxAllowedQty}
+                      className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-850 text-gray-600 dark:text-gray-300 font-bold focus:outline-none disabled:opacity-50"
                     >
                       +
                     </button>
@@ -387,8 +387,8 @@ const ProductDetail = () => {
                 </>
               ) : (
                 <div className="flex-grow p-3 text-center rounded-xl bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 font-bold text-sm border border-red-200 dark:border-red-900/30">
-                  {purchaseType === 'carton' && activeStock > 0
-                    ? `Insufficient stock to form a carton (Needs ${itemsPerCarton}, only ${activeStock} units left)`
+                  {(purchaseType === 'case' || purchaseType === 'carton') && activeStock > 0
+                    ? `Insufficient stock to form a case (Needs ${itemsPerCase}, only ${activeStock} units left)`
                     : 'Out of Stock at this Shop Branch'}
                 </div>
               )}

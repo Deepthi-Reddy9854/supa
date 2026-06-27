@@ -150,10 +150,10 @@ ${itemsList}
     }
 
     try {
-       const itemsPayload = cartItems.map(item => ({
+        const itemsPayload = cartItems.map(item => ({
         productId: item.productId,
         name: item.name,
-        quantity: item.purchaseType === 'carton' ? item.quantity * (item.itemsPerCarton || 20) : item.quantity,
+        quantity: (item.purchaseType === 'case' || item.purchaseType === 'carton') ? item.quantity * (item.itemsPerCase || item.itemsPerCarton || 20) : item.quantity,
         shopId: item.shopId,
         shopName: item.shopName,
         image: item.image,
@@ -314,12 +314,12 @@ ${itemsList}
                       <p className="text-[10px] text-gray-400 font-bold flex items-center gap-1 mt-0.5 uppercase">
                         <MapPin className="w-3.5 h-3.5 text-indigo-500" /> {item.shopName}
                       </p>
-                      {item.purchaseType === 'carton' && (
+                      {(item.purchaseType === 'case' || item.purchaseType === 'carton') && (
                         <span className="inline-block px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold mt-1 uppercase tracking-wide">
-                          Carton Pack ({item.itemsPerCarton || 20} Items)
+                          Case Pack ({item.itemsPerCase || item.itemsPerCarton || 20} Items)
                         </span>
                       )}
-                      <span className="text-xs font-bold text-indigo-600 block mt-1">₹{item.price.toLocaleString('en-IN')} {item.purchaseType === 'carton' ? 'per Carton' : 'per Unit'}</span>
+                      <span className="text-xs font-bold text-indigo-600 block mt-1">₹{item.price.toLocaleString('en-IN')} {(item.purchaseType === 'case' || item.purchaseType === 'carton') ? 'per Case' : 'per Unit'}</span>
                     </div>
                   </div>
 
@@ -330,16 +330,16 @@ ${itemsList}
                         type="button"
                         onClick={() => updateQuantity(item.productId, item.shopId, item.quantity - 1, item.purchaseType)}
                         disabled={item.quantity <= 1}
-                        className="px-2.5 py-1 text-xs hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-655 dark:text-gray-300 font-bold focus:outline-none disabled:opacity-50"
+                        className="px-2.5 py-1 text-xs hover:bg-gray-200 dark:hover:bg-gray-850 text-gray-600 dark:text-gray-300 font-bold focus:outline-none disabled:opacity-50"
                       >
                         -
                       </button>
-                      <span className="px-3 text-xs font-bold text-gray-800 dark:text-white">{item.quantity} {item.purchaseType === 'carton' ? 'ctn' : 'qty'}</span>
+                      <span className="px-3 text-xs font-bold text-gray-800 dark:text-white">{item.quantity} {(item.purchaseType === 'case' || item.purchaseType === 'carton') ? 'case' : 'qty'}</span>
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.productId, item.shopId, item.quantity + 1, item.purchaseType)}
-                        disabled={item.quantity >= 20 || item.quantity >= item.maxStock}
-                        className="px-2.5 py-1 text-xs hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-655 dark:text-gray-300 font-bold focus:outline-none disabled:opacity-50"
+                        disabled={item.quantity >= 200 || item.quantity >= item.maxStock}
+                        className="px-2.5 py-1 text-xs hover:bg-gray-200 dark:hover:bg-gray-855 text-gray-600 dark:text-gray-300 font-bold focus:outline-none disabled:opacity-50"
                       >
                         +
                       </button>
