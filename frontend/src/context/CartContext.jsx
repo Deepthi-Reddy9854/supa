@@ -24,7 +24,7 @@ export const CartProvider = ({ children }) => {
     const isCase = purchaseType === 'case' || purchaseType === 'carton';
     const maxStockAllowed = isCase ? Math.floor(availableStock / itemsPerCase) : availableStock;
     if (isCase && maxStockAllowed < 1) {
-      throw new Error(`Not enough stock at ${shopName} to form a full case (requires at least ${itemsPerCase} units). Only ${availableStock} units left.`);
+      throw new Error(`Not enough stock at ${shopName} to form a full case (requires at least ${itemsPerCase} units).`);
     }
 
     // Clamp the requested quantity to [1, 200]
@@ -56,7 +56,7 @@ export const CartProvider = ({ children }) => {
       } else {
         // New item entry
         if (clampedQty > maxStockAllowed) {
-          throw new Error(`Cannot add requested amount. Stock only has ${maxStockAllowed} ${isCase ? 'cases' : 'units'} at ${shopName}.`);
+          throw new Error(`Cannot add requested amount. Insufficient stock at ${shopName}.`);
         }
 
         return [

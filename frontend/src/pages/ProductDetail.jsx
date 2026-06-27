@@ -388,7 +388,7 @@ const ProductDetail = () => {
               ) : (
                 <div className="flex-grow p-3 text-center rounded-xl bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 font-bold text-sm border border-red-200 dark:border-red-900/30">
                   {(purchaseType === 'case' || purchaseType === 'carton') && activeStock > 0
-                    ? `Insufficient stock to form a case (Needs ${itemsPerCase}, only ${activeStock} units left)`
+                    ? `Insufficient stock to form a case (requires ${itemsPerCase} units)`
                     : 'Out of Stock at this Shop Branch'}
                 </div>
               )}
