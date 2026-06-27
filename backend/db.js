@@ -24,8 +24,23 @@ if (MONGODB_URI) {
   }
 }
 
+const JSONBLOB_URL = 'https://jsonblob.com/api/jsonBlob/019f0890-a765-71dc-95b9-1d0b8e455809';
+const isVercel = !!process.env.VERCEL;
+
 class JSONDatabase {
   async read() {
+    if (isVercel) {
+      try {
+        const res = await fetch(JSONBLOB_URL);
+        if (!res.ok) {
+          throw new Error(`JSONBlob read failed with status ${res.status}`);
+        }
+        return await res.json();
+      } catch (err) {
+        console.error('Failed to read from JSONBlob, falling back to local filesystem', err);
+      }
+    }
+
     try {
       const data = await fs.readFile(dbPath, 'utf-8');
       return JSON.parse(data);
@@ -36,6 +51,25 @@ class JSONDatabase {
   }
 
   async write(data) {
+    if (isVercel) {
+      try {
+        const res = await fetch(JSONBLOB_URL, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) {
+          throw new Error(`JSONBlob write failed with status ${res.status}`);
+        }
+        return;
+      } catch (err) {
+        console.error('Failed to write to JSONBlob', err);
+      }
+    }
+
     try {
       await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf-8');
     } catch (err) {
