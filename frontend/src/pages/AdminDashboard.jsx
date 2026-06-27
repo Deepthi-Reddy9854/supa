@@ -282,6 +282,18 @@ const AdminDashboard = () => {
     };
   }, [connectSSE]);
 
+  // Polling Fallback when SSE is disconnected (for serverless environments)
+  useEffect(() => {
+    if (sseStatus !== 'disconnected') return;
+
+    // Poll every 30 seconds to fetch updates silently
+    const interval = setInterval(() => {
+      loadDashboardDataSilently();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [sseStatus, loadDashboardDataSilently]);
+
   const handleDeleteFeedback = async (id) => {
     if (!window.confirm('Are you sure you want to moderate and delete this customer review?')) return;
     try {
