@@ -59,11 +59,13 @@ const AdminDashboard = () => {
   // Order search and date filters
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
   const [orderFilterDate, setOrderFilterDate] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState('all');
 
   // Live Toast Notifications
   const [toastNotif, setToastNotif] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [highlightedOrderId, setHighlightedOrderId] = useState(null);
+  const [sseStatus, setSseStatus] = useState('connecting');
 
   // Modals / Forms States
   const [productModalOpen, setProductModalOpen] = useState(false);
@@ -223,14 +225,22 @@ const AdminDashboard = () => {
     }
   }, [location.search, shops]);
 
-  // Real-Time SSE Listener
-  useEffect(() => {
+  // Real-Time SSE Listener callback
+  const connectSSE = useCallback(() => {
     if (!token) return;
 
-    // Establish Server-Sent Events stream
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
+
+    setSseStatus('connecting');
     const API_BASE = API_URL;
     const es = new EventSource(`${API_BASE}/notifications/stream?token=${token}`);
     eventSourceRef.current = es;
+
+    es.onopen = () => {
+      setSseStatus('connected');
+    };
 
     es.onmessage = (event) => {
       try {
@@ -258,16 +268,19 @@ const AdminDashboard = () => {
     };
 
     es.onerror = (err) => {
-      console.error('SSE connection lost, event source closing', err);
-      es.close();
+      console.error('SSE connection lost, event source error:', err);
+      setSseStatus('disconnected');
     };
+  }, [token, loadDashboardDataSilently]);
 
+  useEffect(() => {
+    connectSSE();
     return () => {
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
       }
     };
-  }, [token, loadDashboardDataSilently]);
+  }, [connectSSE]);
 
   const handleDeleteFeedback = async (id) => {
     if (!window.confirm('Are you sure you want to moderate and delete this customer review?')) return;
@@ -299,9 +312,10 @@ const AdminDashboard = () => {
     const orderDate = new Date(o.createdAt);
     
     if (ordersPeriod === 'today') {
-      const startOfToday = new Date();
-      startOfToday.setHours(0, 0, 0, 0);
-      return orderDate >= startOfToday;
+      const today = new Date();
+      return orderDate.getDate() === today.getDate() &&
+             orderDate.getMonth() === today.getMonth() &&
+             orderDate.getFullYear() === today.getFullYear();
     }
 
     if (ordersPeriod === 'weekly') {
@@ -333,9 +347,10 @@ const AdminDashboard = () => {
       const orderDate = new Date(o.createdAt);
       
       if (revenuePeriod === 'today') {
-        const startOfToday = new Date();
-        startOfToday.setHours(0, 0, 0, 0);
-        return orderDate >= startOfToday;
+        const today = new Date();
+        return orderDate.getDate() === today.getDate() &&
+               orderDate.getMonth() === today.getMonth() &&
+               orderDate.getFullYear() === today.getFullYear();
       }
 
       if (revenuePeriod === 'weekly') {
@@ -363,9 +378,10 @@ const AdminDashboard = () => {
     const notifDate = new Date(n.createdAt);
     
     if (notifPeriod === 'today') {
-      const startOfToday = new Date();
-      startOfToday.setHours(0, 0, 0, 0);
-      return notifDate >= startOfToday;
+      const today = new Date();
+      return notifDate.getDate() === today.getDate() &&
+             notifDate.getMonth() === today.getMonth() &&
+             notifDate.getFullYear() === today.getFullYear();
     }
 
     if (notifPeriod === 'weekly') {
@@ -385,7 +401,7 @@ const AdminDashboard = () => {
     return true;
   });
 
-  // Filtered orders list for Order Actions tab based on search query and date calendar
+  // Filtered orders list for Order Actions tab based on search query, date calendar, and status filter
   const filteredOrders = orders.filter(o => {
     // 1. Search Query filter (matches order ID, customer name, customer email, delivery recipient name, or delivery recipient phone)
     if (orderSearchQuery.trim() !== '') {
@@ -410,6 +426,31 @@ const AdminDashboard = () => {
       const formattedLocalDate = `${year}-${month}-${day}`;
       if (formattedLocalDate !== orderFilterDate) {
         return false;
+      }
+    }
+
+    // 3. Status Filter
+    if (orderStatusFilter !== 'all') {
+      if (orderStatusFilter === 'active') {
+        // Active orders: Pending, Accepted, Packed, Shipped, Out for Delivery
+        if (['Delivered', 'Cancelled', 'Rejected'].includes(o.status)) {
+          return false;
+        }
+      } else if (orderStatusFilter === 'today') {
+        // Today's orders in local timezone
+        const orderDate = new Date(o.createdAt);
+        const today = new Date();
+        const isToday = orderDate.getDate() === today.getDate() &&
+                        orderDate.getMonth() === today.getMonth() &&
+                        orderDate.getFullYear() === today.getFullYear();
+        if (!isToday) {
+          return false;
+        }
+      } else {
+        // Exact status match
+        if (o.status !== orderStatusFilter) {
+          return false;
+        }
       }
     }
     
@@ -739,10 +780,25 @@ ${footer}
           </button>
           
           {/* SSE Status marker */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-950 text-xs font-semibold text-gray-600 dark:text-gray-400 border">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-            <span>SSE Streams: Live Connection Active</span>
-          </div>
+          <button
+            onClick={connectSSE}
+            disabled={sseStatus === 'connected' || sseStatus === 'connecting'}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-950 text-xs font-semibold text-gray-600 dark:text-gray-400 border hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors disabled:pointer-events-none"
+            title={sseStatus === 'disconnected' ? "Click to reconnect to stream" : undefined}
+          >
+            <span className={`w-2.5 h-2.5 rounded-full ${
+              sseStatus === 'connected' 
+                ? 'bg-emerald-500 animate-ping' 
+                : sseStatus === 'connecting'
+                  ? 'bg-amber-500 animate-pulse'
+                  : 'bg-red-500'
+            }`}></span>
+            <span>
+              {sseStatus === 'connected' && 'SSE Streams: Live Connection Active'}
+              {sseStatus === 'connecting' && 'SSE Streams: Connecting...'}
+              {sseStatus === 'disconnected' && 'SSE Streams: Disconnected (Click to Reconnect)'}
+            </span>
+          </button>
         </div>
       </div>
 
@@ -780,6 +836,11 @@ ${footer}
             >
               <Icon className="w-4 h-4" />
               <span>{tab.name}</span>
+              {tab.id === 'overview' && unreadCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-red-500 text-white rounded-full font-bold">
+                  {unreadCount}
+                </span>
+              )}
             </button>
           );
         })}
@@ -790,7 +851,7 @@ ${footer}
         <div className="space-y-8 animate-in fade-in duration-200">
           
           {/* Stats Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             
             {/* Revenue */}
             <div className="glass-panel p-6 rounded-3xl flex items-center justify-between border-l-4 border-l-indigo-650 shadow-md">
@@ -832,6 +893,19 @@ ${footer}
                   </select>
                 </div>
                 <h3 className="text-3xl font-black text-gray-900 dark:text-white">{totalOrders}</h3>
+              </div>
+              <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center shrink-0 ml-4">
+                <ShoppingBag className="w-6 h-6" />
+              </div>
+            </div>
+
+            {/* Active Orders */}
+            <div className="glass-panel p-6 rounded-3xl flex items-center justify-between border-l-4 border-l-indigo-650 shadow-md">
+              <div className="space-y-1.5 flex-1">
+                <p className="text-xs font-bold text-gray-400 uppercase">Active Orders</p>
+                <h3 className="text-3xl font-black text-gray-900 dark:text-white">
+                  {orders.filter(o => !['Delivered', 'Cancelled', 'Rejected'].includes(o.status)).length}
+                </h3>
               </div>
               <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center shrink-0 ml-4">
                 <ShoppingBag className="w-6 h-6" />
@@ -1096,7 +1170,7 @@ ${footer}
                 placeholder="Search by ID, customer, phone..."
                 value={orderSearchQuery}
                 onChange={(e) => setOrderSearchQuery(e.target.value)}
-                className="w-60 px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-950 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white"
+                className="w-60 px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-955 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white"
               />
 
               {/* Date calendar picker */}
@@ -1107,12 +1181,30 @@ ${footer}
                 className="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-955 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white font-semibold cursor-pointer"
               />
 
+              {/* Status Filter Dropdown */}
+              <select
+                value={orderStatusFilter}
+                onChange={(e) => setOrderStatusFilter(e.target.value)}
+                className="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-955 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white font-semibold cursor-pointer"
+              >
+                <option value="all">All Orders</option>
+                <option value="active">Active Orders</option>
+                <option value="today">Today's Orders</option>
+                <option value="Pending">Pending</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+
               {/* Reset button if filter is active */}
-              {(orderSearchQuery !== '' || orderFilterDate !== '') && (
+              {(orderSearchQuery !== '' || orderFilterDate !== '' || orderStatusFilter !== 'all') && (
                 <button
                   onClick={() => {
                     setOrderSearchQuery('');
                     setOrderFilterDate('');
+                    setOrderStatusFilter('all');
                   }}
                   className="px-3 py-2 bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/20 dark:border-red-900/30 dark:text-red-400 text-xs font-bold rounded-xl hover:bg-red-100 transition-colors"
                 >
